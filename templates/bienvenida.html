@@ -1,0 +1,24 @@
+{% extends 'index.html' %}
+
+{% block title %}Bienvenida{% endblock %}
+
+{% block content %}
+    <div class="welcome-container">
+        <h1>Bienvenido</h1>
+        <h2>{{ nombre }}</h2>
+        
+        <button type="submit"><a href="/inventario">Añadir productos</a></button>
+
+        
+    </div>
+
+    <p class="logup-text">
+        <a href="/inicio" class="btn">Cerrar Sesión</a>
+        <img src="{{ url_for('static', filename='img/Vector.jpg') }}" alt="Logout" class="logout-icon">
+    </p>
+   
+    
+    
+
+    
+{% endblock %}

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodGem - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    {% block extra_styles %}{% endblock %}
+</head>
+<body>
+    {% block content %}
+
+    {% endblock %}
+
+    <footer class="footer">
+        <p> Estefanía Toro &copy; Todos los derechos reservados.</p>
+    </footer>
+        
+</body>
+<script src="{{ url_for('static', filename='js/acciones.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+
+</html>

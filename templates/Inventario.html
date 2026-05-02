@@ -1,0 +1,129 @@
+{% extends 'index.html' %}
+
+{% block title %}Inventario{% endblock %}
+
+
+{% block content %}
+    <div class="inventario-layout">
+        
+        <div class ="encabezado-principal">
+            <div class="date">
+                <p>{{ fecha }}</p>
+            </div>
+            <header class="header">
+                <h1>Inventario</h1>
+                <h2>{{nombre}}</h2>
+            </header>      
+                
+            <p class="logup-text">
+                <a href="/inicio" class="btn">Cerrar Sesión</a>
+                <img src="{{ url_for('static', filename='img/Vector.jpg') }}" alt="Logout" class="logout-icon">
+            </p>
+        </div>
+
+        <div class="main-container">
+            <div class="product-form">
+
+                <h3 class="panel-title">Añadir producto</h3>
+                <form action="/inventario" method="post">
+                    <input type="text" name="codigo_producto" placeholder="Código del producto" required>
+                    <input type="text" name="nombre_producto" placeholder="Nombre del producto" required>
+                    <input type="number" step="0.01" name="precio_producto" placeholder="Precio" required>
+                    <select name="categoria_producto" required>
+                        <option value="" disabled selected>Selecciona una categoría</option>
+                        <option value="granos">Granos</option>
+                        <option value="verduras">Verduras</option>
+                        <option value="frutas">Frutas</option>
+                        <option value="lacteos">Lácteos, Grasa y Huevos</option>
+                        <option value="otros">Otros</option>
+                    </select>
+                    <input type="number" name="cantidad_producto" placeholder="Cantidad" required>
+                    <button type="submit">Agregar</button>
+                    
+                </form>
+            </div>
+
+            <div class="product-list">
+                <h3 class="panel-title">Lista de Productos</h3>
+                <div class="list-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Nombre</th>
+                                <th>Precio</th>
+                                <th>Categoría</th>
+                                <th>Cantidad</th>
+                                <th>Acciones</th>
+                            </tr>
+                           
+                        </thead>
+                        
+                        <tbody>                            
+                            {% for producto in productos %}
+                            <tr>
+                                <td>{{ producto.codigo }}</td>
+                                <td>{{ producto.nombre }}</td>
+                                <td>{{ producto.precio }}</td>
+                                <td>{{ producto.categoria }}</td>
+                                <td>{{ producto.cantidad }}</td>
+                                <td>
+                                    <div class="actions">
+                                        <a href="/edit_product/{{ producto.id }}" class="btn-edit">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </a>
+                                        <form action="/delete_product/{{ producto.id }}" method="POST" onsubmit="return confirm('¿Eliminar producto?');">
+                                            <button class="btn-delete">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button> 
+                                        </form>    
+
+                                    </div>
+                                    
+                                </td> 
+                            </tr>                                                    
+                            {% endfor %}
+                        </tbody>
+                        
+                    </table>
+                </div>
+                <button class="booton-guardar"><a href="{{ url_for('venta') }}">Guardar</a></button> 
+                              
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Modal para editar producto -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Editar Producto</h2>
+            <form id="editForm">
+                <input type="hidden" id="productId" name="product_id">
+                <input type="text" id="producto_codigo" name="producto_codigo" placeholder="Código del producto" required>
+                <input type="text" id="nombre_producto" name="nombre_producto" placeholder="Nombre del producto" required>
+                <input type="number" step="0.01" id="precio_producto" name="precio_producto" placeholder="Precio" required>
+                <select id="categoria_producto" name="categoria_producto" required>
+                    <option value="" disabled>Selecciona una categoría</option>
+                    <option value="granos">Granos</option>
+                    <option value="verduras">Verduras</option>
+                    <option value="frutas">Frutas</option>
+                    <option value="lacteos">Lácteos, Grasa y Huevos</option>
+                    <option value="lácteos">Lácteos (antiguo)</option>
+                    <option value="otros">Otros</option>
+                </select>
+                <input type="number" id="cantidad_producto" name="cantidad_producto" placeholder="Cantidad" required>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-update">Actualizar</button>
+                    <button type="button" class="btn-cancel">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+{% endblock %}
+{% block extra_scripts %}
+    
+{% endblock %}
