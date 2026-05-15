@@ -250,7 +250,7 @@ body {
     margin-bottom: 10px; /* Espacio entre h1 y h2 */
     font: 64px 'Alegreya Sans', bold sans-serif;
     text-align: center;
-    margin-top: -68px; /* Ajusta este valor para mover el h1 hacia arriba o abajo */
+    margin-top: -6px; /* Ajusta este valor para mover el h1 hacia arriba o abajo */
 }
 
 .header h2{
@@ -337,7 +337,7 @@ body {
 .list-container{
     padding: 4px;
     max-height: 280px;
-    overflow-y: auto;
+    overflow-y: visible;
     width: 100%;
 }
 
@@ -479,6 +479,8 @@ body {
     text-align: center;
 }
 
+
+
 .close {
     color: #f2f9f4;
     float: right;
@@ -578,7 +580,7 @@ body {
 }
 
 .navbar  {
-    width: 140%;
+    width: 120%;
     background: #2b2b98;
     padding: 10px 20px;
     border-radius: 8px;
@@ -612,14 +614,21 @@ body {
 
 .productos-list {
     position: absolute;
-    background: white;
-    border: 1px solid #ccc;
-    border-top: none;
+    top: 100%;
+    left: 0;
     width: 100%;
-    max-height: 200px;
+
+    background: white;
+
+    border: 1px solid #ccc;
+
+    z-index: 99999;
+
+    max-height: 250px;
     overflow-y: auto;
-    z-index: 1000;
-    display: none;
+
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+
 }
 .producto-item {
     padding: 10px;
@@ -647,7 +656,7 @@ body {
     gap: 1rem;
     max-height: calc(100vh - 240px);
     min-height: 360px;
-    overflow: hidden;
+    overflow: visible;
 }
 .tabla-scroll {
     overflow-y: auto;
@@ -706,5 +715,123 @@ table {
 
 }
 
+/*Estilos para la página de facturación*/ 
+.modal-factura{
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.5);
 
+    display: none;
 
+    justify-content: center;
+    align-items: center;
+
+    z-index: 999;
+}
+
+.contenido-modal2{
+    width: 320px;
+
+    background: #ececec;
+
+    padding: 25px;
+
+    border-radius: 12px;
+
+    text-align: center;
+}
+
+.contenido-modal2 p{
+    margin-top: 10px;
+    text-align: left;
+    color: #343232;
+}
+
+.campo{
+    margin-top: 15px;
+}
+
+.campo input{
+    width: 100%;
+
+    padding: 10px;
+
+    border-radius: 8px;
+
+    border: none;
+}
+
+.btn-hecho{
+    margin-top: 20px;
+
+    width: 120px;
+
+    padding: 10px;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #b32b2b;
+
+    color: white;
+
+    cursor: pointer;
+}
+
+/* Estilos para la página de historial de ventas */
+.historial-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    gap: 20px;
+}
+
+.historial-layout .header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+    margin-top: 60px;
+    transform: translateY(-6cm);
+}
+
+.historial-layout .date {
+    font-size: 16px;
+    color: #F5F5F5;
+    min-width: 20px; 
+    float: left;
+    transform: translateY(-3cm);
+}
+
+.encabezado-principal {
+    width: 100%;
+    max-width: 1100px;
+    border-radius:10px;
+    padding:20px;
+    background:transparent;
+}
+
+.historial-layout > .collapse.navbar-collapse {
+    position: absolute ;
+    top: 20px ;
+    right: 20px ;
+    width: auto ;
+    display: flex ;
+    background: white;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    z-index: 100;
+}
+
+.historial-layout > .collapse.navbar-collapse .dropdown-menu {
+    position: static;
+    float: none;
+    box-shadow: none;
+    border: none;
+    background: transparent;
+}

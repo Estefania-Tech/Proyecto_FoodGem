@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editForm = document.getElementById('editForm');
     const cancelBtn = modal.querySelector('.btn-cancel');
 
-    // Abrir modal al hacer click en editar
+    // Abrir modal al hacer click en editar en Inventario
     document.querySelectorAll('.btn-edit').forEach(btn => {
         btn.addEventListener('click', async function(e) {
             e.preventDefault();

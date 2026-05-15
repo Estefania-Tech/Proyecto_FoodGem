@@ -1,12 +1,13 @@
 console.log('venta.js cargado');
 
+
+
 // Ejecutar inmediatamente si los elementos existen, o esperar al DOM
 function initVenta() {
     // Verificar que estamos en la página correcta
     if (!document.getElementById('codigoInput')) {
         return;
     }
-
     let productoSeleccionado = null;
     let productosEnTabla = [];
 
@@ -83,6 +84,7 @@ function initVenta() {
 
     // Buscar por código
     codigoInput.addEventListener('input', async function() {
+        console.log("Buscando por código:");
         const codigo = this.value.trim();
         
         if (codigo.length < 1) {
@@ -187,20 +189,24 @@ function initVenta() {
                     <td>${cantidad}</td>
                     <td>$${parseFloat(productoSeleccionado.precio)}</td>
                     <td>$${subtotal}</td>
-                    <td><button class="btn btn-sm btn-danger btn-eliminar">Eliminar</button></td>
+                    <td>
+                        <button class="btn btn-sm btn-danger btn-eliminar">Eliminar</button>
+                        <button class="btn btn-sm btn-warning btn-editar">Editar</button>
+                    </td>
                 `;
 
-                productosEnTabla.push({
-                    codigo: productoSeleccionado.codigo,
-                    nombre: productoSeleccionado.nombre,
-                    cantidad: cantidad,
-                    precio: productoSeleccionado.precio,
-                    subtotal: subtotal
+                    productosEnTabla.push({
+                        codigo: productoSeleccionado.codigo,
+                        nombre: productoSeleccionado.nombre,
+                        cantidad: cantidad,
+                        precio: productoSeleccionado.precio,
+                        subtotal: subtotal
                 });
 
                 tablaProductos.appendChild(fila);
 
                 // Evento para eliminar
+
                 fila.querySelector('.btn-eliminar').addEventListener('click', function() {
                     const index = productosEnTabla.findIndex(p => 
                         p.codigo === productoSeleccionado.codigo && p.cantidad === cantidad
@@ -209,6 +215,27 @@ function initVenta() {
                         productosEnTabla.splice(index, 1);
                     }
                     fila.remove();
+                    calcularTotal();
+                });
+
+                // Evento para editar (puede abrir un modal o permitir edición inline)
+                fila.querySelector('.btn-editar').addEventListener('click', function() {
+                    const nuevoCantidad = prompt('Ingrese la nueva cantidad:', cantidad);
+                    if (nuevoCantidad === null || isNaN(nuevoCantidad)|| nuevoCantidad <= 0){
+                        alert('Cantidad inválida');
+                        return;
+                    } 
+                    const cantidadActualizada = parseInt(nuevoCantidad);
+                    fila.children[2].textContent = cantidadActualizada;
+                    const nuevoSubtotal = cantidadActualizada * productoSeleccionado.precio;
+                    fila.children[4].textContent = `$${nuevoSubtotal}`;
+                    const producto = productosEnTabla.find(p => p.codigo === productoSeleccionado.codigo);
+
+                    if (producto) {
+                        producto.cantidad = cantidadActualizada;
+                        producto.subtotal = nuevoSubtotal;
+                    }
+
                     calcularTotal();
                 });
 
@@ -231,28 +258,6 @@ function initVenta() {
         });
     });
 
-    document.addEventListener("DOMContentLoaded", function() {
-
-        console.log("JS cargado");
-
-        const btn = document.getElementById("btnAgregar");
-
-        if (!btn) {
-            console.error("❌ No se encontró el botón");
-            return;
-        }
-
-        console.log("✅ Botón encontrado");
-
-        btn.addEventListener("click", function() {
-            console.log("🚀 CLICK OK");
-
-            // prueba básica
-            registrarVenta("001", "producto", 1);
-        });
-
-    });
-
 
     // Permitir agregar con Enter en cantidad
     cantidadInput.addEventListener('keypress', function(e) {
@@ -261,16 +266,74 @@ function initVenta() {
         }
     });
 
+    /*Funcion para finalizar venta*/
+    const btnFacturar = document.getElementById('btnFacturar');
+    const modalFactura = document.getElementById('modalFactura');
+    const totalPagar = document.getElementById('totalPagar');
+    const btnHecho = document.getElementById('btnHecho');
+    const cantidadProductos = document.getElementById('cantidadProductos');
+    console.log("Productos en tablaa");
+    btnFacturar.addEventListener('click', function() {
+        modalFactura.style.display = 'flex';
+        cantidadProductos.textContent = productosEnTabla.length;
+        let total = 0;
+        productosEnTabla.forEach(producto => {
+            total += producto.subtotal;
+        });
+        totalPagar.textContent = total.toFixed(2);
+    });
+
+    //Calcular cambio
+    const pagoInput = document.getElementById('pagoInput');
+    const cambio = document.getElementById('cambio');
+    pagoInput.addEventListener('input', function() {
+        const efectivo = parseFloat(this.value) || 0;
+        let total = 0;
+        productosEnTabla.forEach(producto => {
+            total += producto.subtotal;
+        });
+        const cambioValor = efetcivo - total;
+        cambio.textContent = `$${cambioValor.toFixed(2)}`;
+    }); 
+
+    /*Guardar venta en historial*/
+    btnHecho.addEventListener('click', async() => {
+        const total = productosEnTabla.reduce((acc, p) => acc + p.subtotal, 0);
+        const efectivo = parseFloat(pagoInput.value);
+        const cambioValor = efectivo - total;
+        const response = await fetch('/guardar_factura', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                productos: productosEnTabla,
+                total: total,
+                efectivo: efectivo,
+                cambio: cambioValor
+            })
+        });
+        const result = await response.json();
+        if (result.success) {
+            alert('Venta registrada exitosamente');
+            modalFactura.style.display = 'none';
+            location.reload();
+        }
+    }); 
+
     // Calcular total
     function calcularTotal() {
         const total = productosEnTabla.reduce((sum, producto) => sum + producto.subtotal, 0);
-        document.getElementById('totalPagar').textContent = total.toFixed(2);
-    }
+        document.getElementById('totalPagar').textContent = total;
+    } 
+   
 }
 
 // Intentar inicializar inmediatamente, o esperar al DOM
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initVenta);
-} else {
-    initVenta();
-}
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initVenta);
+    } else {
+        initVenta();
+    } 
+
+    

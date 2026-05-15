@@ -26,7 +26,10 @@ class Usuario(db.Model):
     __tablename__ = 'usuarios'
     id: Mapped[int] = mapped_column(primary_key=True)
     nombre: Mapped[str] = mapped_column(nullable=False)
-    password: Mapped[str] = mapped_column(nullable=False)       
+    password: Mapped[str] = mapped_column(nullable=False)   
+
+    productos = db.relationship('Producto', backref='usuario', lazy=True)
+    ventas = db.relationship('Venta', backref='usuario', lazy=True)    
 
     def __repr__(self):
         return (f"<Id : {self.id}, Nombre: {self.nombre}, Password: {self.password}>")
@@ -37,10 +40,13 @@ class Producto(db.Model):
     __tablename__ = 'productos'
     id: Mapped[int] = mapped_column(primary_key=True)
     codigo: Mapped[str] = mapped_column(db.String(50), unique=True, nullable=False)
-    nombre: Mapped[str] = mapped_column(db.String(100), nullable=False, unique=True)
+    nombre: Mapped[str] = mapped_column(db.String(100), nullable=False)
     precio: Mapped[float] = mapped_column(nullable=False)
     categoria: Mapped[str] = mapped_column(db.String(50), nullable=False)
     cantidad: Mapped[int] = mapped_column(nullable=False)
+
+
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
 
     def __repr__(self):
         return (f"<Id : {self.id}, Nombre: {self.nombre}, Precio: {self.precio}, "
@@ -58,10 +64,14 @@ class Venta(db.Model):
     valor_total: Mapped[float] = mapped_column(nullable=False)
     precio_final: Mapped[float] = mapped_column(nullable=False)
 
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+
     def __repr__(self):
         return (f"<Id : {self.id}, Codigo_producto: {self.codigo_producto}, Nombre_producto: {self.nombre_producto}, "
                 f"Cantidad_vendida: {self.cantidad_vendida}, Precio_producto: {self.precio_producto}, "
                 f"Valor_total: {self.valor_total}, Precio_final: {self.precio_final}>")
+
+    
 
 # Modelo de Detalles de Venta
 class DetalleVenta(db.Model):
@@ -75,6 +85,19 @@ class DetalleVenta(db.Model):
     def __repr__(self):
         return (f"<Id : {self.id}, Venta_id: {self.venta_id}, Producto_codigo: {self.producto_codigo}, "
                 f"Cantidad: {self.cantidad}, Precio_final: {self.precio_final}>")
+    
+#Modelo Historial de Ventas
+class HistorialVenta(db.Model):
+    __tablename__ = 'historial_ventas'
+    id: Mapped[int] = mapped_column(primary_key=True)   
+    total = db.Column(db.Float)
+    efectivo = db.Column(db.Float)
+    cambio = db.Column(db.Float)    
+    fecha = db.Column(db.String(20))
+    hora = db.Column(db.String(20))
+    
+    def __repr__(self):
+        return (f"<Id : {self.id}, Venta_id: {self.venta_id}, Fecha: {self.fecha}, Hora: {self.hora}>")
 
 
 
@@ -120,6 +143,7 @@ def inicio():
         usuario = Usuario.query.filter_by(nombre=nombre, password=password).first()
         if usuario:
             session['usuario'] = nombre
+            session['usuario_id'] = usuario.id
             return redirect(url_for('bienvenida'))
 
         return render_template('inicio.html', error='Usuario o contraseña incorrectos')
@@ -147,13 +171,13 @@ def inventario():
         categoria = request.form['categoria_producto'].strip().lower()
         cantidad = int(request.form['cantidad_producto'])
         
-        nuevo_producto = Producto(codigo=codigo, nombre=nombre, precio=precio, categoria=categoria, cantidad=cantidad)
+        nuevo_producto = Producto(codigo=codigo, nombre=nombre, precio=precio, categoria=categoria, cantidad=cantidad, usuario_id=session['usuario_id'])
         db.session.add(nuevo_producto)
         db.session.commit()
         
         return redirect(url_for('inventario'))
-    
-    productos = Producto.query.all()
+
+    productos = Producto.query.filter_by(usuario_id=session['usuario_id']).all()
     fecha = datetime.now().strftime("%d/%m/%Y")
     return render_template('Inventario.html', productos=productos, fecha=fecha, nombre=session['usuario'])
     
@@ -231,8 +255,11 @@ def buscar_producto():
     
     # Buscar por código o nombre
     productos = Producto.query.filter(
-        (Producto.codigo.ilike(f'%{search}%')) | 
-        (Producto.nombre.ilike(f'%{search}%'))
+        Producto.usuario_id == session['usuario_id'],
+        (
+            Producto.codigo.ilike(f'%{search}%') | 
+            Producto.nombre.ilike(f'%{search}%')
+        )
     ).all()
     
     resultado = []
@@ -294,7 +321,8 @@ def venta_add():
             cantidad_vendida=cantidad,
             precio_producto=producto.precio,
             valor_total=valor_total,
-            precio_final=valor_total
+            precio_final=valor_total,
+            usuario_id=session['usuario_id']
         )
 
         db.session.add(nueva_venta)
@@ -349,6 +377,39 @@ def venta():
 @app.route('/test')
 def test():
     return "TEST OK"
+    
+@app.route('/guardar_factura', methods=['POST', 'GET'])
+def guardar_factura():
+
+    data = request.get_json()
+
+    total = data.get('total')
+    efectivo = data.get('efectivo')
+    cambio = data.get('cambio')
+
+    nueva_factura = HistorialVenta(
+        total=total,
+        efectivo=efectivo,
+        cambio=cambio,
+        fecha=datetime.now().strftime("%d/%m/%Y"),
+        hora=datetime.now().strftime("%H:%M:%S")
+    )
+
+    db.session.add(nueva_factura)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+@app.route('/historial_ventas')
+def historial_ventas():
+    if 'usuario' not in session:
+        return redirect(url_for('inicio'))
+    
+    fecha = datetime.now().strftime("%d/%m/%Y")
+    hora = datetime.now().strftime("%H:%M:%S")
+    ventas = HistorialVenta.query.all()
+
+    return render_template('historial.html', ventas=ventas, fecha=fecha, hora=hora, nombre=session['usuario'])
 
 
 if __name__ == '__main__':
